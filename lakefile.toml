@@ -1,0 +1,18 @@
+name = "dfs-correctness"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["DfsCorrectness"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "5a2fd4957159dfe7444378d578b13a94f0122d8e"
+
+[[lean_lib]]
+name = "DfsCorrectness"

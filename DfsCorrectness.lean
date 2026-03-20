@@ -1,1 +1,3 @@
+import DfsCorrectness.FoldlUnion
+import DfsCorrectness.CycleRemoval
 import DfsCorrectness.DFS

@@ -6,24 +6,38 @@ import Mathlib.Tactic
 /-!
 # Cycle removal in chains
 
-Lemmas for removing duplicate occurrences from chains, culminating in
-`reflTransGen_nodup_chain`: any `ReflTransGen` path in a finite type has a
-duplicate-free chain representative.
+This file provides theorems for removing cycles from paths in directed graphs,
+represented as `List`s satisfying `List.IsChain`.
 
-These are pure list/relation lemmas with no DFS dependency.
+The main result is `reflTransGen_nodup_chain`, which states that if a vertex `t`
+is reachable from `s` via the reflexive-transitive closure of a relation `R`,
+there exists a duplicate-free list (a "simple path") starting at `s` and ending at `t`.
+
+## Proof Strategy
+
+The core proof uses a **minimality argument** (the "shortest path" principle):
+1. We define a property `P n` that a path of length `n` exists from `s` to `t`.
+2. We use `Nat.find` to pick a path of absolute **minimum length**.
+3. We prove that this minimal path must be `Nodup`. If it contained a duplicate `x`,
+   we could "short-circuit" the path by jumping from the first `x` to the second `x`,
+   creating a strictly shorter path and contradicting our minimality assumption.
+
+These are general list and relation lemmas with no dependency on the DFS algorithm.
 -/
 
 universe u
 
 variable {V : Type u}
 
-/-- Removing a repeated element from the middle of a list preserves `head?`. -/
+/-- Removing a cycle (the section between two occurrences of `x`) from a list
+preserves the first element (`head?`). -/
 private lemma head?_remove_cycle'
     {pre mid post : List V} {x : V} :
     (pre ++ x :: mid ++ x :: post).head? = (pre ++ x :: post).head? := by
   cases pre <;> simp [List.append_assoc]
 
-/-- Removing a repeated element from the middle of a list preserves `getLast?`. -/
+/-- Removing a cycle (the section between two occurrences of `x`) from a list
+preserves the last element (`getLast?`). -/
 private lemma getLast?_remove_cycle'
     {pre mid post : List V} {x : V} :
     (pre ++ x :: mid ++ x :: post).getLast? = (pre ++ x :: post).getLast? := by
@@ -49,8 +63,9 @@ private lemma getLast?_remove_cycle'
           (List.getLast?_append_of_ne_nil (pre ++ [x]) (by simp : y :: ys ≠ []))
       exact h1.trans h2.symm
 
-/-- Removing a repeated element from the middle of a chain preserves the chain
-property. -/
+/-- If a list is a valid chain under relation `R`, removing a cycle between
+two occurrences of the same element `x` results in a list that is still
+a valid chain. -/
 private lemma isChain_remove_cycle {R : V → V → Prop}
     {pre mid post : List V} {x : V}
     (hchain : List.IsChain R (pre ++ x :: mid ++ x :: post)) :
@@ -67,7 +82,9 @@ private lemma isChain_remove_cycle {R : V → V → Prop}
     hleft.append_overlap hright (by simp)
   simpa [List.singleton_append, List.append_assoc] using this
 
-/-- Decompose a duplicate occurrence into prefix, middle, and suffix. -/
+/-- Decomposes a list containing a duplicate element `x` into the form
+`pre ++ [x] ++ mid ++ [x] ++ post`. This facilitates "short-circuiting"
+the list to remove the cycle. -/
 private lemma duplicate_decompose'
     {x : V} {l : List V}
     (h : List.Duplicate x l) :
@@ -80,7 +97,11 @@ private lemma duplicate_decompose'
       rcases ih with ⟨pre, mid, post, hsplit⟩
       exact ⟨y :: pre, mid, post, by simp [hsplit]⟩
 
-/-- Any `ReflTransGen` path has a cycle-free chain representative. -/
+/-- Any path in the reflexive-transitive closure `ReflTransGen R` can be
+represented by a `Nodup` (simple) chain.
+
+The proof identifies a chain of minimal length and shows that any duplicate
+would allow for an even shorter chain, creating a contradiction. -/
 theorem reflTransGen_nodup_chain
     {R : V → V → Prop}
     {s t : V} (h : Relation.ReflTransGen R s t) :

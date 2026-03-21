@@ -25,6 +25,8 @@ reachable from a source via a neighbor function, and proves it correct against
 
 universe u
 
+namespace DfsCorrectness
+
 section DFS
 
 variable {V : Type u} [Fintype V] [DecidableEq V]
@@ -66,11 +68,13 @@ decreasing_by exact compl_card_lt_of_insert _h
 -- Basic unfolding lemmas
 -- ============================================================================
 
+/- If `curr` is already visited, i.e. `curr ∈ vis`, then the result is just `vis`. -/
 theorem dfsReach_visited (neighbors : V → Finset V)
     {curr : V} {vis : Finset V} (h : curr ∈ vis) :
     dfsReach neighbors curr vis = vis := by
   unfold dfsReach; split <;> [rfl; contradiction]
 
+/- If `curr` is fresh, i.e. `curr ∉ vis`, then we need to explore its neighbors. -/
 theorem dfsReach_fresh (neighbors : V → Finset V)
     {curr : V} {vis : Finset V} (h : curr ∉ vis) :
     dfsReach neighbors curr vis =
@@ -115,12 +119,24 @@ def neighborRel (neighbors : V → Finset V) (a b : V) : Prop := b ∈ neighbors
 -- ============================================================================
 
 /-- Inductive witness that `s` is reachable from `q` via neighbors,
-compatible with the DFS visited-set protocol. -/
+compatible with the DFS visited-set protocol.
+
+A `DfsWitness neighbors vis q s` is a "stateful path" from `q` to `s`.
+It mirrors the execution of `dfsReach` by ensuring:
+
+. Every vertex on the path is "fresh" (not in `vis`) when first encountered.
+. The visited set is updated (marking the current vertex) before exploring further. -/
 inductive DfsWitness (neighbors : V → Finset V) :
     Finset V → V → V → Prop where
+  /-- Base case: we have reached the target `q`.
+  Since `q ∉ vis`, this is a "new discovery" that the DFS algorithm will
+  successfully add to its result set. -/
   | here {vis : Finset V} {q : V}
       (hq : q ∉ vis) :
       DfsWitness neighbors vis q q
+  /-- Recursive step: we move from `q` to a neighbor `next`.
+  To be DFS-compatible, `q` must be fresh, and the remainder of the path
+  must be valid starting from `next` with `q` added to the visited set. -/
   | step {vis : Finset V} {q next s : V}
       (hq : q ∉ vis)
       (hadj : next ∈ neighbors q)
@@ -254,3 +270,5 @@ noncomputable instance instDecidableReflTransGenNeighborRel (neighbors : V → F
     else isFalse (fun hr => h ((dfsReach_correct neighbors u v).mpr hr))
 
 end DFS
+
+end DfsCorrectness

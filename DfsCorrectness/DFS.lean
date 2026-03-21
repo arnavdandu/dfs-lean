@@ -25,6 +25,8 @@ reachable from a source via a neighbor function, and proves it correct against
 
 universe u
 
+namespace DfsCorrectness
+
 section DFS
 
 variable {V : Type u} [Fintype V] [DecidableEq V]
@@ -268,3 +270,5 @@ noncomputable instance instDecidableReflTransGenNeighborRel (neighbors : V → F
     else isFalse (fun hr => h ((dfsReach_correct neighbors u v).mpr hr))
 
 end DFS
+
+end DfsCorrectness

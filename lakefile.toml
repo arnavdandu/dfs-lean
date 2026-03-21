@@ -16,3 +16,6 @@ rev = "5a2fd4957159dfe7444378d578b13a94f0122d8e"
 
 [[lean_lib]]
 name = "DfsCorrectness"
+
+[[lean_lib]]
+name = "BFSCorrectness"

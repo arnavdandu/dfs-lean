@@ -30,14 +30,20 @@ universe u
 variable {V : Type u}
 
 /-- Removing a cycle (the section between two occurrences of `x`) from a list
-preserves the first element (`head?`). -/
+preserves the first element (`head?`).
+
+In English: if you have a path starting at `s`, and you cut out a loop in the
+middle, the resulting path still starts at `s`. -/
 private lemma head?_remove_cycle'
     {pre mid post : List V} {x : V} :
     (pre ++ x :: mid ++ x :: post).head? = (pre ++ x :: post).head? := by
   cases pre <;> simp [List.append_assoc]
 
 /-- Removing a cycle (the section between two occurrences of `x`) from a list
-preserves the last element (`getLast?`). -/
+preserves the last element (`getLast?`).
+
+In English: if you have a path ending at `t`, and you cut out a loop in the
+middle, the resulting path still ends at `t`. -/
 private lemma getLast?_remove_cycle'
     {pre mid post : List V} {x : V} :
     (pre ++ x :: mid ++ x :: post).getLast? = (pre ++ x :: post).getLast? := by
@@ -65,7 +71,11 @@ private lemma getLast?_remove_cycle'
 
 /-- If a list is a valid chain under relation `R`, removing a cycle between
 two occurrences of the same element `x` results in a list that is still
-a valid chain. -/
+a valid chain.
+
+In English: if you have a valid sequence of steps from $A$ to $B$, and you
+jump over a loop that starts and ends at $x$, every step in the new shorter
+sequence is still a valid transition in the graph. -/
 private lemma isChain_remove_cycle {R : V → V → Prop}
     {pre mid post : List V} {x : V}
     (hchain : List.IsChain R (pre ++ x :: mid ++ x :: post)) :
@@ -84,7 +94,10 @@ private lemma isChain_remove_cycle {R : V → V → Prop}
 
 /-- Decomposes a list containing a duplicate element `x` into the form
 `pre ++ [x] ++ mid ++ [x] ++ post`. This facilitates "short-circuiting"
-the list to remove the cycle. -/
+the list to remove the cycle.
+
+In English: if a list has a duplicate, we can always find two occurrences of
+the same value and name the segments of the list before, between, and after them. -/
 private lemma duplicate_decompose'
     {x : V} {l : List V}
     (h : List.Duplicate x l) :
@@ -99,6 +112,9 @@ private lemma duplicate_decompose'
 
 /-- Any path in the reflexive-transitive closure `ReflTransGen R` can be
 represented by a `Nodup` (simple) chain.
+
+In English: if there is a way to get from $s$ to $t$ in a graph, then there is
+a way to do it without ever visiting the same node twice.
 
 The proof identifies a chain of minimal length and shows that any duplicate
 would allow for an even shorter chain, creating a contradiction. -/

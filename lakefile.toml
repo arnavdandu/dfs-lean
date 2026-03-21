@@ -19,3 +19,6 @@ name = "DfsCorrectness"
 
 [[lean_lib]]
 name = "BFSCorrectness"
+
+[[lean_lib]]
+name = "DijkstraCorrectness"

@@ -2,14 +2,26 @@ name: Lean Action CI
 
 on:
   push:
+    branches: [main, master]
+    paths:
+      - '**.lean'
+      - 'lakefile.toml'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+      - '.github/workflows/lean_action_ci.yml'
   pull_request:
+    paths:
+      - '**.lean'
+      - 'lakefile.toml'
+      - 'lean-toolchain'
+      - 'lake-manifest.json'
+      - '.github/workflows/lean_action_ci.yml'
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read # Read access to repository contents
-  pages: write # Write access to GitHub Pages
-  id-token: write # Write access to ID tokens
+# Cancel superseded runs on the same branch / PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -17,5 +29,28 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+
       - uses: leanprover/lean-action@v1
+        with:
+          use-mathlib-cache: true
+          use-github-cache: true
+
+  # Generate and deploy docs only on pushes to main/master
+  docs:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: leanprover/lean-action@v1
+        with:
+          use-mathlib-cache: true
+          use-github-cache: true
+          build: false  # artifacts already verified in build job
+
       - uses: leanprover-community/docgen-action@v1
